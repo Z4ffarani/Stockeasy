@@ -13,7 +13,7 @@ DATA_YAML     = "dataset/data.yaml"
 DATA_DIR      = "dataset"
 IMG_TRAIN_DIR = os.path.join(DATA_DIR, "images/train")
 LBL_TRAIN_DIR = os.path.join(DATA_DIR, "labels/train")
-EPOCHS        = 1
+EPOCHS        = 3
 
 if os.path.exists(DATA_DIR):
     shutil.rmtree(DATA_DIR)

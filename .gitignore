@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+
+# Ambientes virtuais
+venv/
+env/
+ENV/
+.venv/
+.ENV/
+
+# Configurações do VS Code
+.vscode/
+
+# Arquivos de log e caches
+*.log
+*.sqlite3
+*.db
+.cache/
+*.egg-info/
+*.egg
+*.pkl
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
+
+# Jupyter Notebook checkpoints (se usar)
+.ipynb_checkpoints/
+
+# Arquivos de ambiente
+.env
+*.env

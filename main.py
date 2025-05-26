@@ -12,7 +12,7 @@ DATA_YAML     = "dataset/data.yaml"
 DATA_DIR      = "dataset"
 IMG_TRAIN_DIR = os.path.join(DATA_DIR, "images/train")
 LBL_TRAIN_DIR = os.path.join(DATA_DIR, "labels/train")
-EPOCHS        = 3
+EPOCHS        = 1
 
 os.makedirs(IMG_TRAIN_DIR, exist_ok=True)
 os.makedirs(LBL_TRAIN_DIR, exist_ok=True)
@@ -41,11 +41,21 @@ gen_model = YOLO(GEN_MODEL)
 model     = YOLO(MODEL_PATH)
 estoque   = carregar_estoque()
 
+import random
+
 def capturar_novas_amostras(classe, n=100):
-    existing = len(glob.glob(os.path.join(IMG_TRAIN_DIR, f"{classe}_*.jpg")))
+    porcentagem = {"train": 0.7, "valid": 0.2, "test": 0.1}
+    counts = {k: int(n * v) for k, v in porcentagem.items()}
+
+    existing = sum(
+        len(glob.glob(os.path.join(f"{DATA_DIR}/{tipo}/images", f"{classe}_*.jpg")))
+        for tipo in ["train", "valid", "test"]
+    )
+
     cap = cv2.VideoCapture(0)
-    saved = 0
-    while saved < n:
+    saved = {"train": 0, "valid": 0, "test": 0}
+
+    while sum(saved.values()) < n:
         ret, frame = cap.read()
         if not ret:
             break
@@ -57,16 +67,30 @@ def capturar_novas_amostras(classe, n=100):
             cx, cy = x_c / W, y_c / H
             wn, hn = w / W, h / H
             idx = data_cfg["names"].index(classe)
-            img_path = os.path.join(IMG_TRAIN_DIR, f"{classe}_{existing+saved}.jpg")
-            lbl_path = os.path.join(LBL_TRAIN_DIR, f"{classe}_{existing+saved}.txt")
+
+            tipo = random.choices(list(porcentagem.keys()), weights=porcentagem.values())[0]
+            if saved[tipo] >= counts[tipo]:
+                continue
+
+            img_dir = os.path.join(DATA_DIR, tipo, "images")
+            lbl_dir = os.path.join(DATA_DIR, tipo, "labels")
+            os.makedirs(img_dir, exist_ok=True)
+            os.makedirs(lbl_dir, exist_ok=True)
+
+            img_path = os.path.join(img_dir, f"{classe}_{existing + sum(saved.values())}.jpg")
+            lbl_path = os.path.join(lbl_dir, f"{classe}_{existing + sum(saved.values())}.txt")
+
             cv2.imwrite(img_path, frame)
             with open(lbl_path, "w") as f:
                 f.write(f"{idx} {cx:.6f} {cy:.6f} {wn:.6f} {hn:.6f}")
-            saved += 1
-            print(f"[{saved}/{n}] {classe} capturado.")
+
+            saved[tipo] += 1
+            print(f"[{sum(saved.values())}/{n}] {classe} capturado → {tipo}")
+
         cv2.imshow("Captura (q para sair)", frame)
         if cv2.waitKey(1) == ord('q'):
             break
+
     cap.release()
     cv2.destroyAllWindows()
 

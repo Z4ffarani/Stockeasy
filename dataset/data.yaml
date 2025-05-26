@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 3
+names: ['prednisona', 'procitex', 'tramadol']
+
+roboflow:
+  workspace: workspace-kk0qt
+  project: challenge-4dnpk
+  version: 1
+  license: MIT
+  url: https://universe.roboflow.com/workspace-kk0qt/challenge-4dnpk/dataset/1

@@ -4,7 +4,6 @@ import cv2
 import glob
 from ultralytics import YOLO
 import yaml
-import shutil
 
 ARQ_ESTOQUE   = "estoque.json"
 MODEL_PATH    = "model.pt"           
@@ -14,9 +13,6 @@ DATA_DIR      = "dataset"
 IMG_TRAIN_DIR = os.path.join(DATA_DIR, "images/train")
 LBL_TRAIN_DIR = os.path.join(DATA_DIR, "labels/train")
 EPOCHS        = 3
-
-if os.path.exists(DATA_DIR):
-    shutil.rmtree(DATA_DIR)
 
 os.makedirs(IMG_TRAIN_DIR, exist_ok=True)
 os.makedirs(LBL_TRAIN_DIR, exist_ok=True)
@@ -46,11 +42,7 @@ model     = YOLO(MODEL_PATH)
 estoque   = carregar_estoque()
 
 def capturar_novas_amostras(classe, n=100):
-    for f in glob.glob(os.path.join(IMG_TRAIN_DIR, "*.jpg")):
-        os.remove(f)
-    for f in glob.glob(os.path.join(LBL_TRAIN_DIR, "*.txt")):
-        os.remove(f)
-
+    existing = len(glob.glob(os.path.join(IMG_TRAIN_DIR, f"{classe}_*.jpg")))
     cap = cv2.VideoCapture(0)
     saved = 0
     while saved < n:
@@ -64,11 +56,11 @@ def capturar_novas_amostras(classe, n=100):
             H, W, _ = frame.shape
             cx, cy = x_c / W, y_c / H
             wn, hn = w / W, h / H
-            img_path = os.path.join(IMG_TRAIN_DIR, f"{classe}_{saved}.jpg")
-            lbl_path = os.path.join(LBL_TRAIN_DIR, f"{classe}_{saved}.txt")
+            idx = data_cfg["names"].index(classe)
+            img_path = os.path.join(IMG_TRAIN_DIR, f"{classe}_{existing+saved}.jpg")
+            lbl_path = os.path.join(LBL_TRAIN_DIR, f"{classe}_{existing+saved}.txt")
             cv2.imwrite(img_path, frame)
             with open(lbl_path, "w") as f:
-                idx = data_cfg["names"].index(classe)
                 f.write(f"{idx} {cx:.6f} {cy:.6f} {wn:.6f} {hn:.6f}")
             saved += 1
             print(f"[{saved}/{n}] {classe} capturado.")
